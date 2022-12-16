@@ -1,0 +1,7 @@
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\Validation.exe
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\appsettings.Development.json
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\appsettings.json
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\Validation.dll
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\Validation.deps.json
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\Validation.runtimeconfig.json
+d:\datos\Mis documentos\GitHub\PaymentValidation\PaymentValidation\obj\Release\net6.0\PubTmp\Out\Validation.pdb

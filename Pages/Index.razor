@@ -1,0 +1,281 @@
+﻿@page "/"
+
+    <div class="row mx-auto"  style="max-width: 45rem;">
+        <div class="col-sm-12">
+            <div class="card border">
+                <div class="card-header" >
+                    <h3 class="text-center">Validador de Tarjetas de Credito - Cbu - Cuil</h3>
+                </div>
+            </div>
+        </div>
+    <div class="alert @TipoAlerta mb-3 @OcultarAlerta Netlify mx-auto" role="alert" style="max-width: 25rem; margin-top:30px">
+        @ContenidoAlerta
+        </div> 
+    </div>
+
+    <br/>
+
+    <div  class="card text-dark bg-info mb-3 mx-auto" style="max-width: 25rem;">
+        <div class="card-header">Datos</div>
+        <div class="card-body">
+            <div class="input-group mb-3">
+             <img id="icon" SRC=@RutaImagen width="48" height="48" text-center style="margin-right: 6px;"/>
+                    <input type="number" class="form-control" placeholder="Ingrese Numero" @bind=@NumAvalidar  text-center
+                    aria-label="Numero" aria-describedby="basic-addon1">
+                   <button type="button" class="btn btn-primary" style="margin-left: 6px;" @onclick="@Validar" text-center >Validar</button>           
+
+            </div>
+        </div>
+    </div>
+
+
+
+@code {
+    private string NumAvalidar = string.Empty;
+    private string OcultarAlerta {get; set;} = "d-none";
+    private string TipoAlerta {get; set;} = "alert-danger";
+    private string ContenidoAlerta { get; set; } = "";
+    private string? RutaImagen = "Recursos/defecto.ico";
+   
+
+    
+    private bool VerificarTarjeta(string tarjeta)
+    {
+        int suma = 0;
+        bool flag = true;
+        try
+        {
+            for (int i = tarjeta.Length - 1; i >= 0; i--)
+            {
+                if (!flag)
+                {
+                    int tmp = (tarjeta[i] - '0') << 1;
+                    suma += tmp >= 10 ? tmp - 9 : tmp;
+                }
+                else
+                {
+                    suma += (tarjeta[i] - '0');
+                }
+                flag = !flag;
+            }
+            if (suma % 10 == 0)
+            {
+                return true;
+            }
+            else
+            {
+                //verifico tarjeta naranja
+                suma = 0;
+                int[] Multip = { 4, 3, 2, 7, 6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2, 1 };
+
+                for (int i = 0; i < tarjeta.Length - 1; i++)
+                {
+                    int tmp = (int.Parse(tarjeta.Substring(i, 1)) * Multip[i]);
+                    suma += tmp;
+
+                }
+
+                int Resto = 11 - (suma % 11);
+                if (Resto > 9) Resto = 0;
+
+                int Pos = int.Parse(tarjeta.Substring(15, 1));
+                if (Pos == Resto) return true;
+                else return false;
+
+            }
+        }
+        catch (Exception)
+        {
+
+            return false;
+        }
+
+
+        //return suma % 10 == 0;
+    }
+    private  bool VerificarCbu(string Numero)
+    {
+        try
+        {
+            int suma = 0;
+            int[] MultipPart1 = { 7,1,3, 9, 7, 1, 3};
+            int[] MultipPart2 = { 3, 9, 7, 1, 3, 9, 7, 1, 3, 9, 7 , 1 , 3};
+
+            for (int i = 0; i < 7; i++)
+            {
+                int tmp = (int.Parse(Numero.Substring(i, 1)) * MultipPart1[i]);
+                suma += tmp;
+
+            }
+
+            int Longitud = suma.ToString().Length;
+            string UltimoDigitoSuma = suma.ToString().Substring(Longitud-1,1);
+            int Resto = 10 - int.Parse(UltimoDigitoSuma);
+            int Pos = int.Parse(Numero.Substring(7, 1));
+
+            if (Pos == Resto| Pos == 0 & Resto == 10)
+            {
+                suma = 0;
+                int tmp = 0;
+                for (int i = 0; i < 13; i++)
+                {
+                    tmp = (int.Parse(Numero.Substring(i+8, 1)) * MultipPart2[i]);
+                    suma += tmp;
+
+                }
+
+                Longitud = suma.ToString().Length;
+                UltimoDigitoSuma = suma.ToString().Substring(Longitud - 1, 1);
+                Resto = 10 - int.Parse(UltimoDigitoSuma);
+                Pos = int.Parse(Numero.Substring(21, 1));
+                if (Pos == Resto|Pos == 0 & Resto == 10)
+                {
+                    return true;
+                }
+                else return false;
+            }
+            else
+            {
+                return false;
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+
+    }
+    public static bool ValidarCUIT(string cuit)
+    {
+        if (string.IsNullOrWhiteSpace(cuit) || cuit.Length != 11 || !cuit.All(Char.IsNumber)) return false;
+
+        var factores = new int[] { 5, 4, 3, 2, 7, 6, 5, 4, 3, 2 };
+        var acumulado = 0;
+
+        for (int i = 0; i < factores.Length; i++)
+            acumulado += int.Parse(cuit[i].ToString()) * factores[i];
+
+        acumulado = 11 - (acumulado % 11);
+        if (acumulado == 11)
+            acumulado = 0;
+        if (int.Parse(cuit[10].ToString()) != acumulado)
+            return false;
+
+        return true;
+    }
+    private void Validar()
+    {
+        OcultarAlerta = "d-none";
+        if (NumAvalidar.Length  == 11)//CUIL
+        {
+            if (ValidarCUIT(NumAvalidar))
+            {
+                ContenidoAlerta = "Numero Valido";
+                TipoAlerta = "alert-success";
+                OcultarAlerta = "";
+                CambioIcono();
+            }
+            else
+            {
+                ContenidoAlerta = "Numero Invalido";
+                TipoAlerta = "alert-danger";
+                OcultarAlerta = "";
+                CambioIcono();
+            }
+        }
+        else if (NumAvalidar.Length >= 13 & NumAvalidar.Length < 22)
+        {
+            if (VerificarTarjeta(NumAvalidar))
+            {
+                ContenidoAlerta = "Numero Valido";
+                TipoAlerta = "alert-success";
+                OcultarAlerta = "";
+                CambioIcono();
+            }
+            else
+            {
+                ContenidoAlerta = "Numero Invalido";
+                TipoAlerta = "alert-danger";
+                OcultarAlerta = "";
+                CambioIcono();
+            }
+
+        }
+        else if (NumAvalidar.Length== 22)//valida cbu
+        {
+
+            if (VerificarCbu(NumAvalidar))
+            {
+                ContenidoAlerta = "Numero Valido";
+                TipoAlerta = "alert-success";
+                OcultarAlerta = "";
+                CambioIcono();
+            }
+            else
+            {
+                ContenidoAlerta = "Numero Invalido";
+                TipoAlerta = "alert-danger";
+                OcultarAlerta = "";
+                CambioIcono();
+            }
+        }
+        else
+        {
+                ContenidoAlerta = "Numero Invalido";
+                TipoAlerta = "alert-danger";
+                OcultarAlerta = "";
+                CambioIcono();
+            
+        }
+
+    }
+    private void CambioIcono()
+    {
+         if (NumAvalidar.Length >= 4 & NumAvalidar.Length <= 16)//identifico la tarjeta/cuil
+            {
+                if (NumAvalidar.ToString().Substring(0, 4) == "5888")//tarjeta tuya
+                {
+                    RutaImagen = "Recursos/tuya.ico";
+                }
+                else if (NumAvalidar.ToString().Substring(0,2) == "51"| NumAvalidar.ToString().Substring(0, 2) == "52"| NumAvalidar.ToString().Substring(0, 2) == "53"| NumAvalidar.ToString().Substring(0, 2) == "54"| NumAvalidar.ToString().Substring(0, 2) == "55")//mastercad
+                {
+                    RutaImagen = "Recursos/mastercard.ico";
+                }
+                else if (NumAvalidar.ToString().Substring(0, 2) == "34" | NumAvalidar.ToString().Substring(0, 2) == "37")//amex
+                {
+                    RutaImagen = "Recursos/amex.ico";
+                }
+                else if (NumAvalidar.ToString().Substring(0,1) == "4" )//visa
+                {
+                    RutaImagen = "Recursos/visa.ico";
+                }
+                else if (NumAvalidar.ToString().Substring(0, 4) == "5895")//naranja
+                {
+                   RutaImagen = "Recursos/naranja.ico";
+                }
+                else if (NumAvalidar.ToString().Substring(0, 4) == "5896" | NumAvalidar.ToString().Substring(0, 4) == "6042")//cabal
+                {
+                    RutaImagen = "Recursos/cabal.ico";
+                }
+                else if (NumAvalidar.Length == 11 )//es cuit
+                {
+                    RutaImagen = "Recursos/cuil.ico";
+                }
+                else
+                {
+                    RutaImagen = "Recursos/defecto.ico";
+                }
+            }
+            else if (NumAvalidar.Length == 22 )//cbu
+            {
+                RutaImagen = "Recursos/cbu.ico";
+            }
+            else if  (NumAvalidar.Length <= 3)
+            {
+                RutaImagen = "Recursos/defecto.ico";
+            }
+    }
+
+}
